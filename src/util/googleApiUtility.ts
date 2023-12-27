@@ -11,9 +11,7 @@ export const { googleClientID, googleClientSecret, googleCalendarID } =
   getEnv();
 const SCOPE = ['https://www.googleapis.com/auth/calendar'];
 
-const xdgConfig = process.env.XDG_CONFIG_HOME || join(homedir(), '.config');
 const xdgCache = process.env.XDG_CACHE_HOME || join(homedir(), '.cache');
-const JSON_DIR_PATH = join(xdgConfig, 'timehunt');
 const JSON_FILE_PATH = join(xdgCache, 'timehunt', 'token.json');
 
 export const getCredentialsFromJSON = (JSONFilePath: string) => {
@@ -26,18 +24,22 @@ export const getCredentialsFromJSON = (JSONFilePath: string) => {
 };
 
 export const initializeOAuth2Client = async () => {
-  const oauth2Client = new OAuth2Client(
-    googleClientID,
-    googleClientSecret,
-    REDIRECT_URL
-  );
-  const credentials = fs.existsSync(JSON_FILE_PATH)
-    ? getCredentialsFromJSON(JSON_FILE_PATH)
-    : await getCredentials(oauth2Client);
-  if (credentials) {
-    oauth2Client.setCredentials(credentials);
+  try {
+    const oauth2Client = new OAuth2Client(
+      googleClientID,
+      googleClientSecret,
+      REDIRECT_URL
+    );
+    const credentials = fs.existsSync(JSON_FILE_PATH)
+      ? getCredentialsFromJSON(JSON_FILE_PATH)
+      : await getCredentials(oauth2Client);
+    if (credentials) {
+      oauth2Client.setCredentials(credentials);
+    }
+    return oauth2Client;
+  } catch (error) {
+    return undefined;
   }
-  return oauth2Client;
 };
 
 export const getCredentials = async (oauth2Client: OAuth2Client) => {
